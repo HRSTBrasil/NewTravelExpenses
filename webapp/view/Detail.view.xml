@@ -1,0 +1,228 @@
+<mvc:View controllerName="hrst.TravelExpenses.controller.Detail" xmlns="sap.m" xmlns:semantic="sap.f.semantic" xmlns:mvc="sap.ui.core.mvc"
+	xmlns:form="sap.ui.layout.form" xmlns:core="sap.ui.core" xmlns:layout="sap.ui.layout" xmlns:smartForm="sap.ui.comp.smartform"
+	xmlns:smartField="sap.ui.comp.smartfield" xmlns:u="sap.ui.unified">
+	<semantic:SemanticPage id="detailPage" busy="{detailView>/busy}" busyIndicatorDelay="{detailView>/delay}" showFooter="true">
+		<semantic:titleHeading>
+			<Title text="{rep>/Report/externalName}" level="H2"/>
+		</semantic:titleHeading>
+		<semantic:headerContent>
+			<ObjectAttribute title="{i18n>priceTitle}"/>
+			<ObjectNumber id="objectHeaderNumber"
+				number="{ parts: [{path: 'rep>/Report/Total'}, {path: 'rep>/Report/cust_currency'}], type: 'sap.ui.model.type.Currency', formatOptions: { showMeasure: false } }"
+				unit="{rep>/Report/cust_currency}"/>
+		</semantic:headerContent>
+		<semantic:content>
+			<layout:VerticalLayout class="sapUiContentPadding" width="100%">
+				<form:SimpleForm id="InputForm" editable="{detailView>/editable}" layout="ResponsiveGridLayout" title="{i18n>formTitle}" labelSpanXL="4"
+					labelSpanL="4" labelSpanM="4" labelSpanS="12" adjustLabelSpan="false" emptySpanXL="1" emptySpanL="1" emptySpanM="1" emptySpanS="0"
+					columnsXL="1" columnsL="1" columnsM="1" singleContainerFullSize="false">
+					<form:content>
+						<Label text="{i18n>externalName}"/>
+						<Input id="externalName" value="{rep>/Report/externalName}" editable="{detailView>/editable}" required="true"/>
+						<Label text="{i18n>cust_comment}"/>
+						<TextArea id="cust_comment" value="{rep>/Report/cust_comment}" editable="{detailView>/editable}"/>
+						<Label text="{i18n>cust_type}"/>
+						<Select id="cust_type" selectedKey="{rep>/Report/cust_type}"
+							items="{path:'/PickListValueV2',filters:[{path:'PickListV2_id',operator:'EQ',value1:'cust_travel_report'}]}"
+							editable="{detailView>/editable}" forceSelection="false">
+							<core:Item key="{externalCode}" text="{label_defaultValue}"/>
+						</Select>
+						<Label text="{i18n>cust_adt}" visible="{= ${rep>/Report/cust_type} === 'RDA'}"/>
+						<Select id="cust_adt" selectedKey="{rep>/Report/cust_adt}" visible="{= ${rep>/Report/cust_type} === 'RDA'}"
+							items="{path:'/cust_travel_adt',filters:[{path:'createdBy',operator:'EQ',value1:'SAP_SFEC'}]}" editable="{detailView>/editable}"
+							forceSelection="false" change=".onReportChange">
+							<core:Item key="{externalCode}" text="{externalName}"/>
+						</Select>
+						<Label text="{i18n>cust_begda}"/>
+						<DatePicker id="cust_begda"
+							value="{path: 'rep>/Report/cust_begda', type: 'sap.ui.model.type.Date', formatOptions: {style: 'short', strictParsing: true , UTC: true}}"
+							editable="{= ${detailView>/editable} === true}" required="true" change=".onReportChange"/>
+						<Label text="{i18n>cust_endda}"/>
+						<DatePicker id="cust_endda"
+							value="{path: 'rep>/Report/cust_endda', type: 'sap.ui.model.type.Date', formatOptions: {style: 'short', strictParsing: true , UTC: true}}"
+							editable="{detailView>/editable}" required="true" change=".onReportChange"/>
+						<Label text="{i18n>cust_status}" visible="{= ${rep>/Report/cust_status} === 'P' }"/>
+						<Select enabled="false" selectedKey="{rep>/Report/cust_status}" visible="{= ${rep>/Report/cust_status} === 'P' }"
+							items="{path:'/PickListValueV2', filters:[{ path:'PickListV2_id', operator:'EQ', value1:'custTravelExpensesStatus'}]}">
+							<core:Item key="{externalCode}" text="{label_pt_BR}"/>
+						</Select>
+						<Label text="{i18n>cust_status}" visible="{= ${rep>/Report/cust_status} === 'S'}"/>
+						<Select enabled="false" selectedKey="{rep>/Report/status}" visible="{= ${rep>/Report/cust_status} === 'S' }">
+							<items>
+								<core:Item key="Pendente" text="{i18n>wfPending}"/>
+								<core:Item key="Aprovado" text="{i18n>wfApproved}"/>
+								<core:Item key="Rejeitado" text="{i18n>wfRejected}"/>
+							</items>
+						</Select>
+						<Label text="{i18n>cust_currency}"/>
+						<Select id="cust_currency" enabled="{detailView>/editable}" selectedKey="{rep>/Report/cust_currency}"
+							items="{path:'/Currency', sorter : { path : 'code'}, filters:[{path:'defaultDecimals',operator:'EQ',value1:'2'}] }" change=".onReportChange">
+							<core:Item key="{code}" text="{code} - {externalName_pt_PT}"/>
+						</Select>
+					</form:content>
+				</form:SimpleForm>
+				<form:SimpleForm id="OrgForm" editable="{detailView>/editable}" layout="ResponsiveGridLayout" title="{i18n>formOrgTitle}" labelSpanXL="4"
+					labelSpanL="4" labelSpanM="4" labelSpanS="12" adjustLabelSpan="false" emptySpanXL="1" emptySpanL="1" emptySpanM="1" emptySpanS="0"
+					columnsXL="1" columnsL="1" columnsM="1" singleContainerFullSize="false">
+					<form:content>
+						<Label text="{i18n>cust_user}"/>
+						<Input id="inputCust_user" type="Text" textFormatMode="ValueKey" placeholder="Digite um usuário ..." showSuggestion="true"
+							showTableSuggestionValueHelp="false" suggestionRows="{/User}" value="{rep>/Report/cust_user}" editable="{detailView>/editable}">
+							<suggestionColumns>
+								<Column hAlign="Begin" popinDisplay="Inline" demandPopin="true">
+									<Label text="{i18n>cust_user}"/>
+								</Column>
+								<Column hAlign="Center" popinDisplay="Inline" demandPopin="true" minScreenWidth="Tablet">
+									<Label text="{i18n>name}"/>
+								</Column>
+							</suggestionColumns>
+							<suggestionRows>
+								<ColumnListItem>
+									<cells>
+										<Label text="{username}"/>
+										<Label text="{firstName} {lastName}"/>
+									</cells>
+								</ColumnListItem>
+							</suggestionRows>
+						</Input>
+					</form:content>
+				</form:SimpleForm>
+				<Table id="lineItemsList" width="auto"
+					items="{ path: 'rep>/Report/Items', sorter: { path: 'cust_datum' }, parameters: { expand: 'cust_attachmentNav' } }"
+					updateFinished=".onListUpdateFinished" noDataText="{i18n>detailLineItemTableNoDataText}"
+					busyIndicatorDelay="{detailView>/lineItemTableDelay}">
+					<headerToolbar>
+						<Toolbar>
+							<Title id="lineItemsTitle" text="{detailView>/lineItemListTitle}" titleStyle="H3" level="H3"/>
+							<ToolbarSpacer/>
+							<Button visible="{detailView>/editable}" id="btnCreateItem" activeIcon="sap-icon://add" icon="sap-icon://add"
+								tooltip="{i18n>tooltipCreateItem}" press="onCreateItem" text="{i18n>createItem}"/>
+						</Toolbar>
+					</headerToolbar>
+					<columns>
+						<Column>
+							<Text text="{i18n>cust_datum}"/>
+							<footer>
+								<Text text="{i18n>total}"/>
+							</footer>
+						</Column>
+						<Column>
+							<Text text="{i18n>cust_type}"/>
+						</Column>
+						<Column minScreenWidth="Tablet" demandPopin="true" hAlign="End">
+							<Text text="{i18n>cust_value}"/>
+							<footer>
+								<u:Currency value="{rep>/Report/Total}" currency="{rep>/Report/cust_currency}" useSymbol="false"/>
+							</footer>
+						</Column>
+						<Column/>
+					</columns>
+					<items>
+						<ColumnListItem type="{= ${rep>cust_type} !== 'ADT' ? 'Navigation': 'Inactive'}" press="onItemPress" counter="30">
+							<cells>
+								<Text text="{path: 'rep>cust_datum', type: 'sap.ui.model.type.Date', formatOptions: {style: 'short', strictParsing: true , UTC: true}}"/>
+								<Text text="{ parts: [{path: 'rep>cust_type'}, {path: 'rep>cust_typeNav'}], formatter: '.formatter.expenseType' }"/>
+								<u:Currency value="{= parseFloat(${rep>cust_value}) }" currency="{rep>cust_currency}" useSymbol="false"/>
+								<Button icon="sap-icon://delete" visible="{= ${detailView>/editable} === true &amp;&amp; ${rep>cust_type} !== 'ADT' }" press=".onDeleteItem"/>
+							</cells>
+						</ColumnListItem>
+					</items>
+					<dependents>
+						<Dialog xmlns:u="sap.ui.unified" title="{i18n>itemFormTitle}" type="Message" id="itemDialog">
+							<content>
+								<layout:VerticalLayout class="sapUiContentPadding" width="100%">
+									<form:SimpleForm editable="{detailView>/editable}" title="{i18n>formDetail}" layout="ResponsiveGridLayout" labelSpanXL="4" labelSpanL="4"
+										labelSpanM="4" labelSpanS="12" adjustLabelSpan="false" emptySpanXL="1" emptySpanL="1" emptySpanM="1" emptySpanS="0" columnsXL="1"
+										columnsL="1" columnsM="1" singleContainerFullSize="false">
+										<form:content>
+											<VBox>
+												<Label text="{i18n>cust_datum}"/>
+												<DatePicker id="dialogCust_datum"
+													value="{path: 'rep>cust_datum', type: 'sap.ui.model.type.Date', formatOptions: {style: 'short', strictParsing: true , UTC: true}}"
+													editable="{detailView>/editable}" required="true"/>
+												<Label text="{i18n>cust_type}"/>
+												<Select id="dialogCust_type" enabled="{detailView>/editable}" selectedKey="{rep>cust_type}"
+													items="{path:'/PickListValueV2',filters:[{path:'PickListV2_id',operator:'EQ',value1:'cust_travel_expense_type'}]}" forceSelection="false"
+													change=".onDialogCustTypeChange">
+													<core:Item key="{externalCode}" text="{label_pt_BR}"/>
+												</Select>
+												<Label text="{i18n>cust_km}" visible="{= ${rep>cust_type} === ${param>/kmType} }"/>
+												<Input id="dialogCust_km" value="{rep>cust_km}" type="Text" editable="{detailView>/editable}"
+													visible="{= ${rep>cust_type} === ${param>/kmType}}" change=".onKmChange"/>
+												<Label text="{i18n>cust_value}"/>
+												<Input id="dialogCust_value"
+													value="{parts: [{path:'rep>cust_value'},{ path:'rep>cust_currency'}], type:'sap.ui.model.type.Currency',formatOptions: { showMeasure: false }}"
+													type="Text" editable="{= ${rep>cust_type} === 'RBKM' ? false : ${detailView>/editable} }" required="true"/>
+												<Label text="{i18n>comment}"/>
+												<TextArea id="dialogExternalName" value="{rep>externalName}" editable="{detailView>/editable}"/>
+												<Label text="Anexo"/>
+												<HBox visible="{rep>hasAttachment}" alignItems="Center">
+													<Link text="{ path: 'rep>cust_attachmentNav/fileName' }" press=".onDownloadPress" class="sapUiSmallMarginEnd"/>
+													<Button icon="sap-icon://delete" press=".onAttachmentDeleted" tooltip="{i18n>deleteAttachment}"
+														enabled="{= ${detailView>/editable} === true}"/>
+												</HBox>
+												<u:FileUploader sameFilenameAllowed="true" fileType="txt,xlsx,xls,doc,docs,jpeg,gif,png,heif,hevc,pdf,jpg"
+													placeholder="{i18n>attachmentPlaceholder}" blocked="{= ${detailView>/editable} === false}" id="dialogFileUploader" name="fileUploader"
+													value="{rep>attachment}" visible="{=${rep>hasAttachment}!==true}"/>
+											</VBox>
+										</form:content>
+									</form:SimpleForm>
+									<form:SimpleForm id="ItemOrgForm" editable="{detailView>/editable}" layout="ResponsiveGridLayout" title="{i18n>formOrgTitle}"
+										labelSpanXL="4" labelSpanL="4" labelSpanM="4" labelSpanS="12" adjustLabelSpan="false" emptySpanXL="1" emptySpanL="1" emptySpanM="1"
+										emptySpanS="0" columnsXL="1" columnsL="1" columnsM="1" singleContainerFullSize="false">
+										<form:content>
+											<Label text="{i18n>orgOption}"/>
+											<RadioButtonGroup columns="2" enabled="{detailView>/editable}">
+												<buttons>
+													<RadioButton id="rbCostCenter" text="{i18n>costCenter}" select=".onOrgOptionChange" enabled="true"
+														selected="{= ${rep>cust_costCenter} !== null }"/>
+													<RadioButton id="rbPepElement" text="{i18n>pepElement}" select=".onOrgOptionChange" enabled="true"
+														selected="{= ${rep>cust_pepElement} !== null }"/>
+												</buttons>
+											</RadioButtonGroup>
+											<Label text="{i18n>costCenter}"/>
+											<Select id="cust_costCenter" selectedKey="{rep>cust_costCenter}" items="{/FOCostCenter}" editable="{detailView>/editable}"
+												forceSelection="false" visible="{= ${rep>cust_costCenter} !== null}">
+												<core:Item key="{externalCode}" text="{externalCode} - {name_pt_BR}"/>
+											</Select>
+											<Label text="{i18n>pepElement}"/>
+											<Select id="cust_pepElement" selectedKey="{rep>cust_pepElement}" items="{/cust_PepElement}" editable="{detailView>/editable}"
+												forceSelection="false" visible="{= ${rep>cust_pepElement} !== null}">
+												<core:Item key="{externalCode}" text="{externalCode} - {externalName}"/>
+											</Select>
+										</form:content>
+									</form:SimpleForm>
+								</layout:VerticalLayout>
+							</content>
+							<buttons>
+								<Button text="{i18n>ok}" icon="sap-icon://accept" press="onItemClose" id="DialogBtnOk"/>
+							</buttons>
+						</Dialog>
+					</dependents>
+				</Table>
+			</layout:VerticalLayout>
+		</semantic:content>
+		<semantic:footerCustomActions>
+			<Button text="{i18n>sendReport}" visible="{detailView>/editable}" type="Emphasized" press=".onSend" icon="sap-icon://paper-plane"/>
+			<Button text="{i18n>save}" visible="{detailView>/editable}" type="Emphasized" press=".onSave" icon="sap-icon://save"/>
+			<Button text="{i18n>deleteReport}" visible="{detailView>/editable}" enabled="{rep>/Report/Deletable}" press=".onDelete"
+				icon="sap-icon://delete"/>
+			<Button text="{= ${detailView>/editable} === false ? ${i18n>edit} : ${i18n>cancel} }" press=".onEdit" icon="sap-icon://edit"
+				enabled="{rep>/Report/Editable}"/>
+		</semantic:footerCustomActions>
+		<semantic:sendEmailAction>
+			<semantic:SendEmailAction id="shareEmail" press=".onSendEmailPress"/>
+		</semantic:sendEmailAction>
+		<semantic:closeAction>
+			<semantic:CloseAction id="closeColumn" press=".onCloseDetailPress"/>
+		</semantic:closeAction>
+		<semantic:fullScreenAction>
+			<semantic:FullScreenAction id="enterFullScreen"
+				visible="{= !${device>/system/phone} &amp;&amp; !${appView>/actionButtonsInfo/midColumn/fullScreen}}" press=".toggleFullScreen"/>
+		</semantic:fullScreenAction>
+		<semantic:exitFullScreenAction>
+			<semantic:ExitFullScreenAction id="exitFullScreen"
+				visible="{= !${device>/system/phone} &amp;&amp; ${appView>/actionButtonsInfo/midColumn/fullScreen}}" press=".toggleFullScreen"/>
+		</semantic:exitFullScreenAction>
+	</semantic:SemanticPage>
+</mvc:View>

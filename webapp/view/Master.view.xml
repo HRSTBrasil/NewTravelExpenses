@@ -1,0 +1,52 @@
+<mvc:View controllerName="hrst.TravelExpenses.controller.Master" xmlns="sap.m" xmlns:semantic="sap.f.semantic" xmlns:mvc="sap.ui.core.mvc">
+	<semantic:SemanticPage id="masterPage" preserveHeaderStateOnScroll="true" toggleHeaderOnTitleClick="false">
+		<semantic:addAction>
+			<semantic:AddAction press=".onCreateReport"/>
+		</semantic:addAction>
+		<semantic:titleHeading>
+			<Title id="masterPageTitle" text="{masterView>/title}" level="H2"/>
+		</semantic:titleHeading>
+		<semantic:content>
+			<List id="list" width="auto" class="sapFDynamicPageAlignContent" busyIndicatorDelay="{masterView>/delay}"
+				noDataText="{masterView>/noDataText}" mode="{= ${device>/system/phone} ? 'None' : 'SingleSelectMaster'}" growing="false"
+				growingScrollToLoad="true" updateFinished=".onUpdateFinished" selectionChange=".onSelectionChange"
+				items="{path: '/cust_travel_expenses', filters: [{path: 'createdBy', operator: 'EQ', value1: 'SFADMIN' }], parameters:{expand : 'cust_typeNav, cust_statusNav'}}">
+				<infoToolbar>
+					<Toolbar active="true" id="filterBar" visible="{masterView>/isFilterBarVisible}" press=".onOpenViewSettings">
+						<Title id="filterBarLabel" text="{masterView>/filterBarLabel}" level="H3"/>
+					</Toolbar>
+				</infoToolbar>
+				<headerToolbar>
+					<OverflowToolbar>
+						<SearchField id="searchField" showRefreshButton="true" tooltip="{i18n>masterSearchTooltip}" search=".onSearch" width="auto">
+							<layoutData>
+								<OverflowToolbarLayoutData minWidth="150px" maxWidth="240px" shrinkable="true" priority="NeverOverflow"/>
+							</layoutData>
+						</SearchField>
+						<ToolbarSpacer/>
+						<Button id="sortButton" press=".onOpenViewSettings" icon="sap-icon://sort" type="Transparent"/>
+						<Button id="filterButton" press=".onOpenViewSettings" icon="sap-icon://filter" type="Transparent"/>
+						<Button id="groupButton" press=".onOpenViewSettings" icon="sap-icon://group-2" type="Transparent"/>
+					</OverflowToolbar>
+				</headerToolbar>
+				<items>
+					<ObjectListItem type="Navigation" title="{externalName}" intro="{path: 'cust_typeNav', formatter: '.formatter.reportType' }"
+						id="oliNavigation" press=".onSelectionChange"
+						number="{ parts: [{path: 'cust_valor_total'}, {path: 'cust_currency'}], type: 'sap.ui.model.type.Currency', formatOptions: { showMeasure: false } }"
+						numberUnit="{cust_currency}">
+						<attributes>
+							<ObjectAttribute
+								text="De {path: 'cust_begda', type: 'sap.ui.model.type.Date', formatOptions: {style: 'short', strictParsing: true , UTC: true}} até {path: 'cust_endda', type: 'sap.ui.model.type.Date', formatOptions: {style: 'short', strictParsing: true , UTC: true}}"/>
+						</attributes>
+						<firstStatus>
+							<ObjectStatus text="{parts: [{path: 'cust_status'}, {path: 'cust_statusNav'}, {path: 'externalCode'}], formatter: '.formatter.status'}"/>
+						</firstStatus>
+						<secondStatus>
+							<ObjectStatus text=""/>
+						</secondStatus>
+					</ObjectListItem>
+				</items>
+			</List>
+		</semantic:content>
+	</semantic:SemanticPage>
+</mvc:View>
