@@ -5,8 +5,13 @@ sap.ui.define([
 	"../utilities/utilities",
 	'sap/m/MessageBox',
 	"sap/m/library",
-	"sap/m/MessageToast"
-], function (BaseController, JSONModel, formatter, utilities, MessageBox, mobileLibrary, MessageToast) {
+	"sap/m/MessageToast",
+	"sap/ui/model/Filter",
+	"sap/ui/model/Sorter",
+	"sap/ui/model/FilterOperator",
+	"sap/m/Token"
+], function (BaseController, JSONModel, formatter, utilities, MessageBox, mobileLibrary, MessageToast, Filter, Sorter, FilterOperator,
+	Token) {
 	"use strict";
 
 	// shortcut for sap.m.URLHelper
@@ -51,14 +56,53 @@ sap.ui.define([
 					this.setModel(new JSONModel(oParameters), "param");
 				}
 			});
-
+			this._updateUserCostCenter(this.getOwnerComponent().currentUser.name);
 			this.setModel(oViewModel, "detailView");
 			this.getRouter().getRoute("object").attachPatternMatched(this._onObjectMatched, this);
 
 		},
 
-		onUserValueHelp: function (oEvent) {
+		onReportTypeChange: function (oEvent) {
+			this._updateAdvancesList(this.byId("inputCust_user").getValue());
+		},
 
+		onUserChange: function () {
+			this._updateUserCostCenter(this.byId("inputCust_user").getValue());
+			this._updateAdvancesList(this.byId("inputCust_user").getValue());
+		},
+
+		_updateAdvancesList(sUser) {
+
+			var oBinding = this.byId("cust_adt").getBinding("items");
+			var aFilters = [];
+			aFilters.push(new Filter("cust_user", FilterOperator.EQ, sUser));
+			aFilters.push(new Filter("cust_belnr", FilterOperator.NE, null));
+
+			var oFilter = new Filter({
+				filters: aFilters,
+				and: true
+			});
+
+			oBinding.filter(oFilter);
+		},
+
+		_updateUserCostCenter: function (sUser) {
+
+			var aFilters = [];
+			var aSorters = [];
+
+			aFilters.push(new Filter("userId", FilterOperator.EQ, sUser));
+			aSorters.push(new Sorter("startDate", true));
+			this.getOwnerComponent().getModel().read("/EmpJob", {
+				filters: aFilters,
+				sorters: aSorters,
+				success: (oSuccess) => {
+					if (oSuccess.results[0]) {
+						this.getOwnerComponent().currentUser.costCenter = oSuccess.results[0].costCenter;
+						this.ReportState.costCenter = oSuccess.results[0].costCenter;
+					}
+				}
+			});
 		},
 
 		/* =========================================================== */
@@ -67,8 +111,8 @@ sap.ui.define([
 
 		onSend: function (oEvent) {
 
-			if (this.ReportState.data.Report.cust_total <= 0) {
-				MessageBox("Valor total inválido. Verifique e tente novamente.");
+			if (this.ReportState.data.Report.Total < 0) {
+				MessageBox.alert("Valor total inválido. Verifique e tente novamente.");
 				return;
 			}
 
@@ -180,7 +224,8 @@ sap.ui.define([
 		},
 
 		onCreateItem: function (oEvent) {
-			const iIndex = this.ReportState.createReportItem();
+			const iIndex = this.ReportState.createReportItem(this.ReportState.costCenter);
+			this._createdId = iIndex;
 			const sPath = `/${ this.getOwnerComponent().REPORT }/${ this.getOwnerComponent().ITEMS }/${ iIndex }`;
 			this._openItemDialog(sPath);
 		},
@@ -199,6 +244,7 @@ sap.ui.define([
 		 * @public
 		 */
 		onItemPress: function (oEvent) {
+			this._oldItem = Object.assign({}, oEvent.getSource().getBindingContext("rep").getObject());
 			this._openItemDialog(oEvent.getSource().getBindingContextPath());
 		},
 
@@ -206,7 +252,25 @@ sap.ui.define([
 		 * Event handler when the Ok button of the item edition has been clicked
 		 * @public
 		 */
-		onItemClose: function (oEvent) {
+
+		onItemCancel: function (oEvent) {
+			if (this._createdId) {
+				this.ReportState.deleteReportItem(this._createdId);
+			}
+
+			var sPath = oEvent.getSource().getBindingContext("rep").sPath;
+			var iIndex = this._getIndexFromPath(sPath);
+			var oItem = this.ReportState.getItem(iIndex);
+
+			for (var prop in this._oldItem) {
+				oItem[prop] = this._oldItem[prop];
+			}
+
+			this.getModel("rep").updateBindings();
+			this._closeItemDialog();
+		},
+
+		onItemOk: function (oEvent) {
 
 			var sPath = oEvent.getSource().getBindingContext("rep").sPath;
 			var iIndex = this._getIndexFromPath(sPath);
@@ -284,7 +348,7 @@ sap.ui.define([
 
 			if (sId == "rbCostCenter") {
 				oReportModel.setProperty(sPath + "/cust_pepElement", null);
-				oReportModel.setProperty(sPath + "/cust_costCenter", "");
+				oReportModel.setProperty(sPath + "/cust_costCenter", this.ReportState.costCenter);
 			} else {
 				oReportModel.setProperty(sPath + "/cust_costCenter", null);
 				oReportModel.setProperty(sPath + "/cust_pepElement", "");
@@ -359,6 +423,59 @@ sap.ui.define([
 			this.ReportState.getAttachment(sPath);
 		},
 
+		onUserHelpRequested: function () {
+
+			this.oColModel = new JSONModel({
+				"cols": [{
+					"label": "Id",
+					"template": "userId",
+					"width": "5rem"
+				}, {
+					"label": "Nome",
+					"template": "defaultFullName"
+				}]
+			});
+			var aCols = this.oColModel.getData().cols;
+
+			if (!this._oValueHelpDialog) {
+				this._oValueHelpDialog = sap.ui.xmlfragment("hrst.TravelExpenses.view.UserValueHelp", this);
+				this.getView().addDependent(this._oValueHelpDialog);
+			}
+			this._oValueHelpDialog.open();
+		},
+
+		onUserHelpOkPress: function (oEvent) {
+			const sUserId = oEvent.getParameter("selectedItem").getCells()[0].getText();
+			this.getView().byId("inputCust_user").setValue(sUserId);
+			this.onUserChange();
+			this._oValueHelpDialog.close();
+		},
+
+		onUserHelpCancelPress: function (oEvent) {
+			this._oValueHelpDialog.close();
+		},
+
+		onUserHelpAfterClose: function (oEvent) {
+			this._oValueHelpDialog.destroy();
+		},
+
+		onUserSearch: function (oEvent) {
+
+			var oBinding = oEvent.getSource().getBinding("items");
+			var aFilters = [];
+			aFilters.push(new Filter("userId", FilterOperator.Contains, oEvent.getParameter("value")));
+			aFilters.push(new Filter("firstName", FilterOperator.Contains, oEvent.getParameter("value")));
+			aFilters.push(new Filter("lastName", FilterOperator.Contains, oEvent.getParameter("value")));
+
+			var oFilter = new Filter({
+				filters: aFilters,
+				and: false
+			});
+
+			oBinding.filter(oFilter);
+
+		},
+
 		/* =========================================================== */
 		/* begin: internal methods                                     */
 		/* =========================================================== */
@@ -389,6 +506,8 @@ sap.ui.define([
 
 		_openItemDialog: function (sPath) {
 			var oDialog = this.byId("itemDialog");
+
+			debugger;
 
 			oDialog.bindElement({
 				path: sPath,

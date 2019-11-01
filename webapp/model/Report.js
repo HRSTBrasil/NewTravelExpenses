@@ -89,14 +89,14 @@ sap.ui.define([
 
 			this.Items.splice(iIndex, 1);
 		},
-		addEmptyItem: function () {
+		addEmptyItem: function (sCostCenter) {
 			var oItem = new Item({
 				externalName: "",
 				cust_value: 0.00,
 				cust_currency: this.cust_currency,
 				hasAttachment: false,
 				cust_pepElement: null,
-				cust_costCenter: null
+				cust_costCenter: sCostCenter
 			});
 
 			oItem.cust_datum = new Date();
@@ -127,6 +127,9 @@ sap.ui.define([
 
 		getTotal: function () {
 			return this.getItems().reduce((dTotal, oItem) => {
+				if (oItem.cust_type === 'ADT') {
+					return dTotal;
+				}
 				return dTotal + Number(oItem.cust_value);
 			}, 0);
 		},

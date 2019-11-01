@@ -1,0 +1,23 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+	<TableSelectDialog noDataText="{i18n>noDataPersons}" title="{i18n>personsTitle}" confirm=".onUserHelpOkPress" search=".onUserSearch"
+		cancel=".onUserHelpCancelPress" items="{/User}" id="tablePersons" growing="false" busy="{person>/busy}">
+		<ColumnListItem>
+			<cells>
+				<Text text="{userId}"/>
+				<Text text="{defaultFullName}"/>
+			</cells>
+		</ColumnListItem>
+		<columns>
+			<Column>
+				<header>
+					<Title text="{i18n>userId}"/>
+				</header>
+			</Column>
+			<Column>
+				<header>
+					<Title text="{i18n>defaultFullName}"/>
+				</header>
+			</Column>
+		</columns>
+	</TableSelectDialog>
+</core:FragmentDefinition>

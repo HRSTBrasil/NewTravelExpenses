@@ -16,6 +16,7 @@ sap.ui.define([
 			BaseObject.call(this, {
 				isState: true
 			});
+			this.costCenter = null;
 
 		},
 
@@ -48,7 +49,7 @@ sap.ui.define([
 					case "REJECTED":
 						return "Rejeitado";
 						break;
-					case "APPROVED":
+					case "COMPLETED":
 						return "Aprovado";
 						break;
 					case "PENDING":
@@ -87,7 +88,7 @@ sap.ui.define([
 		},
 
 		createReportItem: function () {
-			this.data.Report.addEmptyItem();
+			this.data.Report.addEmptyItem(this.costCenter);
 			this.onReportChange();
 			let iIndex = this.data.Report.Items.length - 1;
 			this.data.Report.Items[iIndex].cust_datum = this.data.Report.cust_begda;

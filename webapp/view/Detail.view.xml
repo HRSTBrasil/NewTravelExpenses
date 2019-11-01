@@ -24,13 +24,12 @@
 						<Label text="{i18n>cust_type}"/>
 						<Select id="cust_type" selectedKey="{rep>/Report/cust_type}"
 							items="{path:'/PickListValueV2',filters:[{path:'PickListV2_id',operator:'EQ',value1:'cust_travel_report'}]}"
-							editable="{detailView>/editable}" forceSelection="false">
+							editable="{detailView>/editable}" forceSelection="false" change="onReportTypeChange">
 							<core:Item key="{externalCode}" text="{label_defaultValue}"/>
 						</Select>
 						<Label text="{i18n>cust_adt}" visible="{= ${rep>/Report/cust_type} === 'RDA'}"/>
-						<Select id="cust_adt" selectedKey="{rep>/Report/cust_adt}" visible="{= ${rep>/Report/cust_type} === 'RDA'}"
-							items="{path:'/cust_travel_adt',filters:[{path:'createdBy',operator:'EQ',value1:'SAP_SFEC'}]}" editable="{detailView>/editable}"
-							forceSelection="false" change=".onReportChange">
+						<Select id="cust_adt" selectedKey="{rep>/Report/cust_adt}" visible="{= ${rep>/Report/cust_type} === 'RDA'}" items="{/cust_travel_adt}"
+							editable="{detailView>/editable}" forceSelection="false" change=".onReportChange">
 							<core:Item key="{externalCode}" text="{externalName}"/>
 						</Select>
 						<Label text="{i18n>cust_begda}"/>
@@ -66,24 +65,10 @@
 					columnsXL="1" columnsL="1" columnsM="1" singleContainerFullSize="false">
 					<form:content>
 						<Label text="{i18n>cust_user}"/>
-						<Input id="inputCust_user" type="Text" textFormatMode="ValueKey" placeholder="Digite um usuário ..." showSuggestion="true"
-							showTableSuggestionValueHelp="false" suggestionRows="{/User}" value="{rep>/Report/cust_user}" editable="{detailView>/editable}">
-							<suggestionColumns>
-								<Column hAlign="Begin" popinDisplay="Inline" demandPopin="true">
-									<Label text="{i18n>cust_user}"/>
-								</Column>
-								<Column hAlign="Center" popinDisplay="Inline" demandPopin="true" minScreenWidth="Tablet">
-									<Label text="{i18n>name}"/>
-								</Column>
-							</suggestionColumns>
-							<suggestionRows>
-								<ColumnListItem>
-									<cells>
-										<Label text="{username}"/>
-										<Label text="{firstName} {lastName}"/>
-									</cells>
-								</ColumnListItem>
-							</suggestionRows>
+						<Input id="inputCust_user" showValueHelp="true" valueHelpOnly="true" placeholder="Digite um usuário ..."
+							valueHelpRequest=".onUserHelpRequested" value="{rep>/Report/cust_user}" change="onUserChange" editable="{detailView>/editable}"
+							suggestionItems="{ path: '/User', sorter: { path: 'firstName' } }">
+							<core:Item key="{userId}" text="{defaultFullName} ({userId})"/>
 						</Input>
 					</form:content>
 				</form:SimpleForm>
@@ -109,6 +94,12 @@
 						<Column>
 							<Text text="{i18n>cust_type}"/>
 						</Column>
+						<Column>
+							<Text text="{i18n>cust_costCenter}"/>
+						</Column>
+						<Column>
+							<Text text="{i18n>cust_pepElement}"/>
+						</Column>
 						<Column minScreenWidth="Tablet" demandPopin="true" hAlign="End">
 							<Text text="{i18n>cust_value}"/>
 							<footer>
@@ -122,13 +113,15 @@
 							<cells>
 								<Text text="{path: 'rep>cust_datum', type: 'sap.ui.model.type.Date', formatOptions: {style: 'short', strictParsing: true , UTC: true}}"/>
 								<Text text="{ parts: [{path: 'rep>cust_type'}, {path: 'rep>cust_typeNav'}], formatter: '.formatter.expenseType' }"/>
+								<Text text="{rep>cust_costCenter}"></Text>
+								<Text text="{rep>cust_pepElement}"></Text>
 								<u:Currency value="{= parseFloat(${rep>cust_value}) }" currency="{rep>cust_currency}" useSymbol="false"/>
 								<Button icon="sap-icon://delete" visible="{= ${detailView>/editable} === true &amp;&amp; ${rep>cust_type} !== 'ADT' }" press=".onDeleteItem"/>
 							</cells>
 						</ColumnListItem>
 					</items>
 					<dependents>
-						<Dialog xmlns:u="sap.ui.unified" title="{i18n>itemFormTitle}" type="Message" id="itemDialog">
+						<Dialog xmlns:u="sap.ui.unified" title="{i18n>itemFormTitle}" type="Message" id="itemDialog" escapeHandler=".onItemClose">
 							<content>
 								<layout:VerticalLayout class="sapUiContentPadding" width="100%">
 									<form:SimpleForm editable="{detailView>/editable}" title="{i18n>formDetail}" layout="ResponsiveGridLayout" labelSpanXL="4" labelSpanL="4"
@@ -175,14 +168,14 @@
 											<RadioButtonGroup columns="2" enabled="{detailView>/editable}">
 												<buttons>
 													<RadioButton id="rbCostCenter" text="{i18n>costCenter}" select=".onOrgOptionChange" enabled="true"
-														selected="{= ${rep>cust_costCenter} !== null }"/>
+														selected="{= ${rep>cust_pepElement} === null }"/>
 													<RadioButton id="rbPepElement" text="{i18n>pepElement}" select=".onOrgOptionChange" enabled="true"
 														selected="{= ${rep>cust_pepElement} !== null }"/>
 												</buttons>
 											</RadioButtonGroup>
 											<Label text="{i18n>costCenter}"/>
-											<Select id="cust_costCenter" selectedKey="{rep>cust_costCenter}" items="{/FOCostCenter}" editable="{detailView>/editable}"
-												forceSelection="false" visible="{= ${rep>cust_costCenter} !== null}">
+											<Select id="cust_costCenter" selectedKey="{rep>cust_costCenter}" items="{ path: '/FOCostCenter', sorter: { path: 'externalCode' }}"
+												enabled="false" forceSelection="false" visible="{= ${rep>cust_pepElement} === null}">
 												<core:Item key="{externalCode}" text="{externalCode} - {name_pt_BR}"/>
 											</Select>
 											<Label text="{i18n>pepElement}"/>
@@ -195,7 +188,8 @@
 								</layout:VerticalLayout>
 							</content>
 							<buttons>
-								<Button text="{i18n>ok}" icon="sap-icon://accept" press="onItemClose" id="DialogBtnOk"/>
+								<Button text="{i18n>ok}" icon="sap-icon://accept" press=".onItemOk" id="DialogBtnOk"/>
+								<Button text="{i18n>cancel}" icon="sap-icon://reject" press=".onItemCancel" id="DialogBtnClose"/>
 							</buttons>
 						</Dialog>
 					</dependents>

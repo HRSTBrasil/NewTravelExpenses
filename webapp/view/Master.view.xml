@@ -9,8 +9,7 @@
 		<semantic:content>
 			<List id="list" width="auto" class="sapFDynamicPageAlignContent" busyIndicatorDelay="{masterView>/delay}"
 				noDataText="{masterView>/noDataText}" mode="{= ${device>/system/phone} ? 'None' : 'SingleSelectMaster'}" growing="false"
-				growingScrollToLoad="true" updateFinished=".onUpdateFinished" selectionChange=".onSelectionChange"
-				items="{path: '/cust_travel_expenses', filters: [{path: 'createdBy', operator: 'EQ', value1: 'SFADMIN' }], parameters:{expand : 'cust_typeNav, cust_statusNav'}}">
+				growingScrollToLoad="true" updateFinished=".onUpdateFinished" selectionChange=".onSelectionChange" items="{/cust_travel_expenses}">
 				<infoToolbar>
 					<Toolbar active="true" id="filterBar" visible="{masterView>/isFilterBarVisible}" press=".onOpenViewSettings">
 						<Title id="filterBarLabel" text="{masterView>/filterBarLabel}" level="H3"/>

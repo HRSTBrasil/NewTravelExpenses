@@ -41,7 +41,12 @@ sap.ui.define([
 			return this._createAttachments(this, oReport.Items).then((aItems) => {
 				oReport.Items = aItems;
 				var oData = oReport.getJSON();
-				return this.odata("/cust_travel_expenses").post(oData);
+				var mParameters = {
+					urlParameters: {
+						workflowConfirmed: "true"
+					}
+				};
+				return this.odata("/cust_travel_expenses").post(oData, mParameters);
 			});
 
 		},
@@ -57,8 +62,6 @@ sap.ui.define([
 		updateReport: function (oReport) {
 
 			var maintainItems = async function (oContext, oReport) {
-
-				debugger;
 				jQuery.each(oReport.Items, (key, value) => {
 					try {
 						if (value.cust_type === "ADT") {
@@ -95,7 +98,13 @@ sap.ui.define([
 					externalCode: oData.externalCode
 				});
 
-				oContext.odata(sUrl).put(oData);
+				var mParameters = {
+					urlParameters: {
+						workflowConfirmed: "true"
+					}
+				};
+
+				oContext.odata(sUrl).put(oData, mParameters);
 				return oData;
 
 			};

@@ -54,14 +54,24 @@ sap.ui.define([
 				}.bind(this)
 			};
 
-			this._oList = oList;
-			this._currentUser = this.getOwnerComponent().currentUser;
+			var that = this;
 
-			// APply filter by user
-			this._oList.attachEvent("updateStarted", function (oEvent) {
+			this._oList = oList;
+
+			this._oList.attachEvent("updateFinished", function (oEvent) {
+
 				var oBinding = oEvent.getSource().getBinding("items");
 				if (!oBinding.getFilterInfo()) {
 					var aFilters = [];
+					aFilters.push(new Filter("createdBy", 'EQ', that.getOwnerComponent().currentUser.name));
+					aFilters.push(new Filter("cust_user", 'EQ', that.getOwnerComponent().currentUser.name));
+
+					var oFilter = new Filter({
+						filters: aFilters,
+						and: false
+					});
+
+					oBinding.filter(oFilter);
 				}
 			});
 

@@ -22,7 +22,8 @@
 				"uri": "/odata/v2/",
 				"type": "OData",
 				"settings": {
-					"localUri": "localService/SF_EXTENSIONS/metadata.xml"
+					"localUri": "localService/SF_EXTENSIONS/metadata.xml",
+					"annotations": []
 				}
 			}
 		},

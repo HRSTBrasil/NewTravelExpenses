@@ -75,7 +75,7 @@ sap.ui.define([
 			return this.externalCode === "";
 		},
 		isNotEmpty: function () {
-			return this.externalCode !== "";
+			return (this.externalCode !== "" && this.cust_type !== "ADT");
 		},
 		getJSON: function () {
 			var oData = {
