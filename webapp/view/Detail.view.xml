@@ -64,10 +64,10 @@
 					labelSpanL="4" labelSpanM="4" labelSpanS="12" adjustLabelSpan="false" emptySpanXL="1" emptySpanL="1" emptySpanM="1" emptySpanS="0"
 					columnsXL="1" columnsL="1" columnsM="1" singleContainerFullSize="false">
 					<form:content>
-						<Label text="{i18n>cust_user}"/>
+						<Label text="{i18n>cust_user}" visible="{userModel>/admin}"/>
 						<Input id="inputCust_user" showValueHelp="true" valueHelpOnly="true" placeholder="Digite um usuário ..."
 							valueHelpRequest=".onUserHelpRequested" value="{rep>/Report/cust_user}" change="onUserChange" editable="{detailView>/editable}"
-							suggestionItems="{ path: '/User', sorter: { path: 'firstName' } }">
+							suggestionItems="{ path: '/User', sorter: { path: 'firstName' } }" visible="{userModel>/admin}">
 							<core:Item key="{userId}" text="{defaultFullName} ({userId})"/>
 						</Input>
 					</form:content>

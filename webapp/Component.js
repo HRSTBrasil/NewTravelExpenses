@@ -6,8 +6,10 @@ sap.ui.define([
 	"./controller/ErrorHandler",
 	"./service/ReportService",
 	"./state/ReportState",
-	"sap/ui/model/json/JSONModel"
-], function (UIComponent, Device, models, ListSelector, ErrorHandler, ReportService, ReportState, JSONModel) {
+	"sap/ui/model/json/JSONModel",
+	"sap/ui/model/Filter",
+	"sap/ui/model/FilterOperator"
+], function (UIComponent, Device, models, ListSelector, ErrorHandler, ReportService, ReportState, JSONModel, Filter, FilterOperator) {
 	"use strict";
 
 	return UIComponent.extend("hrst.TravelExpenses.Component", {
@@ -40,7 +42,20 @@ sap.ui.define([
 			oUserModel.loadData("/services/userapi/currentUser");
 			this.setModel(oUserModel, "userModel");
 			oUserModel.dataLoaded().then(() => {
+
 				this.currentUser = this.getModel("userModel").getData();
+				var aFilters = [];
+				aFilters.push(new Filter("field_usr", FilterOperator.EQ, this.currentUser.name));
+
+				this.getModel().read("/cust_dados_usr", {
+					filters: aFilters,
+					success: (oSuccess) => {
+						oSuccess.results.forEach(oItem => {
+							this.getModel("userModel").setProperty("/admin", oItem.cust_admin_travel || false);
+						});
+					}
+				});
+
 			});
 
 			// create the views based on the url/hash
