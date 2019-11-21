@@ -41,6 +41,7 @@ sap.ui.define([
 			var oUserModel = new JSONModel();
 			oUserModel.loadData("/services/userapi/currentUser");
 			this.setModel(oUserModel, "userModel");
+			this.getModel("userModel").setProperty("/admin", false);
 			oUserModel.dataLoaded().then(() => {
 
 				this.currentUser = this.getModel("userModel").getData();
